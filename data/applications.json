@@ -1,0 +1,245 @@
+[
+    {
+        "id": 1,
+        "identifier": "RMSNTP",
+        "name": "SMARTMON Network Time Protocol",
+        "options": {
+            "DEBUG": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "IgnoreW32Time": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "DontFixSvc": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "ResyncDelay": {
+                "varTypeUnitOfMeasure": null,
+                "varType": "integer",
+                "example": 90
+            },
+            "NtpHosts": {
+                "varType": "csv",
+                "example": "0.us.pool.ntp.org,1.us.pool.ntp.org,2.us.pool.ntp.org"
+            }
+        }
+    },
+    {
+        "id": 2,
+        "identifier": "RMSDCC",
+        "name": "SMARTMON Disk Capacity Check",
+        "events": [
+            {
+                "id": 160,
+                "desc": null
+            },
+            {
+                "id": 161,
+                "desc": null
+            },
+            {
+                "id": 162,
+                "desc": null
+            },
+            {
+                "id": 163,
+                "desc": null
+            }
+        ],
+        "config": "c:\\kworking\\RMSDCC.ini",
+        "vsaSource": "VsaShared\\MSPB\\_EMM\\Smon-Cfg\\_Common\\RMSDCC.ini",
+        "options": {
+            "DEBUG": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "ExcludeTinyDrives": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "NoWarn": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "TinyDriveSize": {
+                "varTypeUnitOfMeasure": null,
+                "varType": "integer",
+                "example": 18
+            },
+            "DiskFactor": {
+                "varType": "csv",
+                "example": "49,99,149,199,249,299,499,749,9999"
+            },
+            "LabelExclusionList": {
+                "varType": "csv",
+                "example": "49,99,149,199,249,299,499,749,9999"
+            }
+        }
+    },
+    {
+        "id": 3,
+        "identifier": "RMSUSC",
+        "name": "SMARTMON User Security Check",
+        "options": {
+            "DEBUG": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "DelayInit": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "Exclude": {
+                "varType": "csv",
+                "example": "49,99,149,199,249,299,499,749,9999"
+            }
+        }
+    },
+    {
+        "id": 3,
+        "identifier": "RMSICC",
+        "name": "SMARTMON Internet Connection Check",
+        "options": {}
+    },
+    {
+        "id": 4,
+        "identifier": "RMMCKD",
+        "name": "MAINTENANCE Check Disk",
+        "options": {
+            "DEBUG": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "DoChkDsk": {
+                "varType": "boolean",
+                "example": "Y"  
+            },
+            "DoSmart": {
+                "varType": "boolean",
+                "example": "Y"  
+            },
+            "Drives": {
+                "varType": "csv",
+                "example": null
+            }
+        }
+    },
+    {
+        "id": 5,
+        "identifier": "RMMSCU",
+        "name": "MAINTENANCE System Cleanup",
+        "options": {
+            "DEBUG": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "DoNotClearRecycleBin": {
+                "varType": "boolean",
+                "example": "N"  
+            },
+            "TempFileAge": {
+                "varTypeUnitOfMeasure": null,
+                "varType": "integer",
+                "example": 5
+            },
+            "HotFixFileAge": {
+                "varTypeUnitOfMeasure": null,
+                "varType": "integer",
+                "example": 90
+            },
+            "OtherDirList": {
+                "varType": "csv",
+                "example": null
+            },
+            "ForceDirList": {
+                "varType": "csv",
+                "example": null
+            },
+            "TempDirList": {
+                "varType": "semi-colon delimited",
+                "example": "%SystemDrive%\\temp;%SystemDrive%\\tmp;%SystemRoot%\\temp;D:\\temp"
+            }
+        }
+    },
+    {
+        "id": 6,
+        "identifier": "RMMVDU",
+        "name": "MAINTENANCE Volume Defrag Utility",
+        "options": {
+            "DEBUG": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "PreCmd": {
+                "varType": "string",
+                "example": null
+            },
+            "PostCmd": {
+                "varType": "string",
+                "example": null
+            },
+            "Services": {
+                "varType": "csv",
+                "example": null
+            },
+            "Volumes": {
+                "varType": "csv",
+                "example": null
+            }
+        }
+    },
+    {
+        "id": 6,
+        "identifier": "RMSSBM",
+        "name": "SMARTMON Server Boot Monitor",
+        "options": {
+            "DEBUG": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "Weekend": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "ServiceName": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "SMDetectTimer": {
+                "varTypeUnitOfMeasure": "minutes",
+                "varType": "integer",
+                "example": 15
+            },
+            "BusinessHours": {
+                "varType": "csv",
+                "example": "08:00,21:00"
+            }
+        }
+    },
+    {
+        "id": 6,
+        "identifier": "RMSSSC",
+        "name": "SMARTMON System Security Check",
+        "options": {
+            "DEBUG": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "SkipAll": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "SkipEventID_:ID": {
+                "varType": "boolean",
+                "example": "Y"
+            },
+            "Preferred": {
+                "varType": "string",
+                "example": "Sophos Anti-Virus"
+            }
+        }
+    }
+]
