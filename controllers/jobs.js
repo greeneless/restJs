@@ -19,11 +19,11 @@ async function getData(request, response) {
 // change to function getItem
 // @desc    Inquire
 // @route   GET /api/jobs/:id
-async function getItem(request, response, id) {
+async function getItem(request, response, identifier) {
     try {
         response.writeHead(200, { 'Content-Type': 'application/json' })
 
-        const record = await Data.findById(id)
+        const record = await Data.findById(identifier)
         if (!record) {
             response.end(JSON.stringify({'message': 'record not found'}))
         } else {
@@ -42,22 +42,28 @@ async function addItem(request, response) {
     try {
         const body = await getPostData(request)
         let { custid, jobtype, jobstatus, jobhost } = JSON.parse(body)
-        if (!jobstatus) {
-            jobstatus = null
-        }
-
-        if (!jobhost) {
-            jobhost = null
-        }
-        const record = {
-            custid,
-            jobtype,
-            jobstatus: jobstatus,
-            jobhost: jobhost
-        }
-        const newRecord = await Data.add(record)
-        response.writeHead(201, {'Content-Type': 'application/json'})
-        return response.end(JSON.stringify(newRecord))
+        if (!jobstatus) { jobstatus = null }
+        if (!jobhost) { jobhost = null }
+        if (!custid || !jobtype) {
+            response.writeHead(500, {'Content-Type': 'application/json'})
+            return response.end(JSON.stringify(
+                {
+                    'message': 'server error required fields missing',
+                    'debugging': 'did you submit an array of post records? one at a time please',
+                    'reuired': ['custid', 'jobtype']
+                }))
+        } else {
+            // post to API
+            const record = {
+                custid,
+                jobtype,
+                jobstatus: jobstatus,
+                jobhost: jobhost
+            }
+            const newRecord = await Data.add(record)
+            response.writeHead(201, {'Content-Type': 'application/json'})
+            return response.end(JSON.stringify(newRecord))
+    }
     } catch (error) {
         console.log(error)
     }
@@ -66,24 +72,25 @@ async function addItem(request, response) {
 // change to function updateItem 
 // @desc    Update
 // @route   PUT /api/jobs/:id
-async function updateItem(request, response, id) {
+async function updateItem(request, response, identifier) {
     try {
         response.writeHead(200, { 'Content-Type': 'application/json' })
 
-        const product = await Data.findById(id)
-        if (!product) {
+        const record = await Data.findById(identifier)
+        if (!record) {
             response.end(JSON.stringify({'message': 'record not found'}))
         } else {
 
         const body = await getPostData(request)
-        const { title, description, price } = JSON.parse(body)
-        const productData = {
-            title: title || product.title,
-            description: description || product.description,
-            price: price || product.price
+        let { jobtype, jobstatus, jobhost } = JSON.parse(body)
+        const recordData = {
+            custid: record.custid,
+            jobtype: jobtype || record.jobtype,
+            jobstatus: jobstatus || record.jobstatus,
+            jobhost: jobhost || record.jobhost
         }
-        const updatedProduct = await Data.update(productData, "0003")
-        return response.end(JSON.stringify(updatedProduct))
+        const updatedRecord = await Data.update(recordData, identifier)
+        return response.end(JSON.stringify(updatedRecord))
     }
     } catch (error) {
         console.log(error)
@@ -94,16 +101,16 @@ async function updateItem(request, response, id) {
 // change to function delItem
 // @desc    Delete record
 // @route   DELETE /api/jobs/:id
-async function deleteItem(request, response, id) {
+async function deleteItem(request, response, identifier) {
     try {
         response.writeHead(200, { 'Content-Type': 'application/json' })
 
-        const product = await Data.findById(id)
+        const product = await Data.findById(identifier)
         if (!product) {
             response.end(JSON.stringify({'message': 'record not found'}))
         } else {
-            await Data.del(id)
-            response.end(JSON.stringify({'message': `record removed. id: ${id}`}))
+            await Data.del(identifier)
+            response.end(JSON.stringify({'message': `record removed. id: ${identifier}`}))
         }
     } catch (error) {
         console.log(error)

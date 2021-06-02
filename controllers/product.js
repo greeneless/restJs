@@ -74,7 +74,7 @@ async function updateProduct(request, response, id) {
             description: description || product.description,
             price: price || product.price
         }
-        const updatedProduct = await Product.update(productData, "0003")
+        const updatedProduct = await Product.update(productData, id)
         return response.end(JSON.stringify(updatedProduct))
     }
     } catch (error) {

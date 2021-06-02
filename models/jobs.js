@@ -28,7 +28,7 @@ function add(newData) {
 function update(newData, identifer) {
     return new Promise((resolve, reject) => {
         const index = content.findIndex((record) => record.id === identifer)
-        content[index] = {id, ...newData}
+        content[index] = {id: identifer, ...newData}
 
         writeToFile('./data/jobs.json', content)
         resolve(content[index])
