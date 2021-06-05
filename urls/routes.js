@@ -1,4 +1,4 @@
-const { getProducts, getProduct, addProduct } = require('./controllers/product')
+const { getProducts, getProduct, addProduct } = require('./controllers/jobs')
 
 class Route {
     constructor(request, response) {
@@ -8,8 +8,8 @@ class Route {
     }
     isValidRoute() {
         let routeList = [
-            '/api/products',
             '/api/jobs',
+            'api/request',
             '/api/applications'
         ]
         if (!routeList.includes(this.route)) {
@@ -33,6 +33,6 @@ class Route {
         if (!this.isValidId()) {
             throw 'Invalid request identifier provided. Number expected.'
         }
-        return getProducts();
+        return getItems();
     }
 }

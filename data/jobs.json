@@ -1,1 +1,39 @@
-[{"id":"guidguidguidguidguid","custid":"","jobtype":"","internalnotes":"Jobtype = Install || Update:RS0000-00"}]
+[
+  {
+    "id": "guidguidguidguidguid",
+    "custid": "",
+    "jobtype": "",
+    "internalnotes": "Jobtype = Install || Update:RS0000-00",
+    "jobstatus": "NEW",
+    "jobtask": "",
+    "jobhost": "",
+    "initialTime": "2021-06-10T15:59:47.170Z",
+    "lastUpdateTime": "2021-06-10T15:59:47.171Z"
+  },
+  {
+    "id": "guidguidguidguidguid",
+    "custid": "TESTAE",
+    "jobtype": "INSTALL",
+    "jobstatus": "QUEUED",
+    "jobtask": "CreateApiUser",
+    "jobhost": "mhwisdep01"
+  },
+  {
+    "id": "guidguidguidguidguid",
+    "custid": "CUSTID",
+    "jobtype": "Update:RS2100-00",
+    "jobstatus": "FAIL",
+    "jobtask": "ModProc",
+    "jobhost": "mhwisdep02"
+  },
+  {
+    "id": "2a156677-7cb5-4691-ad3d-5c1ae2b5782c",
+    "custid": "24UNET",
+    "jobtype": "RS:2100-00",
+    "jobstatus": "new",
+    "jobhost": "",
+    "jobtask": "",
+    "initialTime": "2021-06-05T20:46:48.585Z",
+    "lastUpdateTime": "2021-06-05T20:46:48.585Z"
+  }
+]

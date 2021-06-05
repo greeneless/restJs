@@ -2,7 +2,27 @@ const { rejects } = require('assert')
 const fs = require('fs')
 
 function writeToFile(filename, content) {
-    fs.writeFileSync(filename, JSON.stringify(content), 'utf-8', (err) => console.log(err))
+    fs.writeFileSync(filename, JSON.stringify(content, null, 2), 'utf-8', (error) => console.log(error))
+}
+
+function loadFromFile(filename) {
+    // Read a json source file
+    var output = fs.readFileSync(filename, 'utf-8', function(error, data) {
+            if (error) throw error;
+    })
+    return output;
+}
+
+function arrayFromRootJsonProperty(data, property) {
+    try {
+        const output = []
+        for (let i = 0; i < data.length; i++) {
+            output.push(data[i][property])
+        }
+        return output;
+    } catch (error) {
+        throw error;
+    }
 }
 
 function getPostData(request) {
@@ -24,5 +44,7 @@ function getPostData(request) {
 
 module.exports = {
     writeToFile,
-    getPostData
+    getPostData,
+    loadFromFile,
+    arrayFromRootJsonProperty
 }

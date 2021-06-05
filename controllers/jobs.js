@@ -16,6 +16,23 @@ async function getData(request, response) {
 
 }
 
+async function getOldestUnassignedJobUuid() {
+    try {
+        const records = JSON.stringify(await Data.findAll())
+        let status = []
+        for (let i = 0; i < records.length; i++) {
+            if (records[i].jobstatus.lower() === 'new') {
+                status.push(records[i].custid)
+            }
+        }
+        return status
+        
+    } catch (error) {
+        console.log(error)
+    }
+
+}
+
 // change to function getItem
 // @desc    Inquire
 // @route   GET /api/jobs/:id
@@ -41,9 +58,11 @@ async function getItem(request, response, identifier) {
 async function addItem(request, response) {
     try {
         const body = await getPostData(request)
-        let { custid, jobtype, jobstatus, jobhost } = JSON.parse(body)
-        if (!jobstatus) { jobstatus = null }
-        if (!jobhost) { jobhost = null }
+        let { custid, jobtype, jobstatus, jobhost, jobtask, initialTime } = JSON.parse(body)
+        if (!jobstatus) { jobstatus = 'new' }
+        if (!jobhost) { jobhost = '' }
+        if (!jobtask) { jobtask = '' }
+        if (!initialTime) {initialTime = new Date()}
         if (!custid || !jobtype) {
             response.writeHead(500, {'Content-Type': 'application/json'})
             return response.end(JSON.stringify(
@@ -58,7 +77,10 @@ async function addItem(request, response) {
                 custid,
                 jobtype,
                 jobstatus: jobstatus,
-                jobhost: jobhost
+                jobhost: jobhost,
+                jobtask: jobtask,
+                initialTime: initialTime,
+                lastUpdateTime: initialTime
             }
             const newRecord = await Data.add(record)
             response.writeHead(201, {'Content-Type': 'application/json'})
@@ -82,12 +104,13 @@ async function updateItem(request, response, identifier) {
         } else {
 
         const body = await getPostData(request)
-        let { jobtype, jobstatus, jobhost } = JSON.parse(body)
+        let { jobtype, jobstatus, jobhost, jobtask } = JSON.parse(body)
         const recordData = {
             custid: record.custid,
             jobtype: jobtype || record.jobtype,
             jobstatus: jobstatus || record.jobstatus,
-            jobhost: jobhost || record.jobhost
+            jobhost: jobhost || record.jobhost,
+            jobtask: jobtask || record.jobtask
         }
         const updatedRecord = await Data.update(recordData, identifier)
         return response.end(JSON.stringify(updatedRecord))
@@ -105,8 +128,8 @@ async function deleteItem(request, response, identifier) {
     try {
         response.writeHead(200, { 'Content-Type': 'application/json' })
 
-        const product = await Data.findById(identifier)
-        if (!product) {
+        const record = await Data.findById(identifier)
+        if (!record) {
             response.end(JSON.stringify({'message': 'record not found'}))
         } else {
             await Data.del(identifier)
@@ -118,10 +141,17 @@ async function deleteItem(request, response, identifier) {
 
 }
 
+async function assignWork() {
+    const output = await getOldestUnassignedJobUuid()
+    console.log(output)
+    return 0;
+}
+
 module.exports = {
     getData,
     getItem,
     addItem,
     updateItem,
-    deleteItem
+    deleteItem,
+    assignWork
 }
