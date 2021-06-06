@@ -1,6 +1,10 @@
 const { rejects } = require('assert')
 const fs = require('fs')
 
+function getFuncName() {
+    return getFuncName.caller.name
+}
+
 function writeToFile(filename, content) {
     fs.writeFileSync(filename, JSON.stringify(content, null, 2), 'utf-8', (error) => console.log(error))
 }
@@ -43,6 +47,7 @@ function getPostData(request) {
 }
 
 module.exports = {
+    getFuncName,
     writeToFile,
     getPostData,
     loadFromFile,

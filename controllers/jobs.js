@@ -1,5 +1,5 @@
 const Data = require('../models/jobs')
-const { getPostData } = require('../utils')
+const { getPostData, getFuncName } = require('../utils')
 
 // change to function getData
 // @desc    Retrieve bulk
@@ -12,8 +12,13 @@ async function getData(request, response) {
         response.end(JSON.stringify(records))
     } catch (error) {
         console.log(error)
+        response.writeHead(500, {'Content-Type': 'application/json'})
+        return response.end(JSON.stringify(
+            {
+                'message': 'request not processed trycatch caught an error in ' + getFuncName(),
+                'error': error
+            }))
     }
-
 }
 
 // change to function getItem
@@ -31,8 +36,13 @@ async function getItem(request, response, identifier) {
         }
     } catch (error) {
         console.log(error)
+        response.writeHead(500, {'Content-Type': 'application/json'})
+        return response.end(JSON.stringify(
+            {
+                'message': 'request not processed trycatch caught an error in ' + getFuncName(),
+                'error': error
+            }))
     }
-
 }
 
 // change to function addItem 
@@ -41,11 +51,15 @@ async function getItem(request, response, identifier) {
 async function addItem(request, response) {
     try {
         const body = await getPostData(request)
+        // guard no body content return
+        if (!body) {
+            response.writeHead(500, {'Content-Type': 'application/json'})
+            return response.end(JSON.stringify({'message': 'received POST ' + request.url + ' with no body content.'}))
+        }
+
         let { custid, jobtype, jobstatus, jobhost, jobtask, initialTime } = JSON.parse(body)
-        if (!jobstatus) { jobstatus = 'new' }
-        if (!jobhost) { jobhost = '' }
-        if (!jobtask) { jobtask = '' }
-        if (!initialTime) {initialTime = new Date()}
+
+        // guard request is missing required fields
         if (!custid || !jobtype) {
             response.writeHead(500, {'Content-Type': 'application/json'})
             return response.end(JSON.stringify(
@@ -54,23 +68,35 @@ async function addItem(request, response) {
                     'debugging': 'did you submit an array of post records? one at a time please',
                     'reuired': ['custid', 'jobtype']
                 }))
-        } else {
-            // post to API
-            const record = {
-                custid,
-                jobtype,
-                jobstatus: jobstatus,
-                jobhost: jobhost,
-                jobtask: jobtask,
-                initialTime: initialTime,
-                lastUpdateTime: initialTime
-            }
-            const newRecord = await Data.add(record)
-            response.writeHead(201, {'Content-Type': 'application/json'})
-            return response.end(JSON.stringify(newRecord))
-    }
+        }
+
+        // if not val set val
+        if (!jobstatus) { jobstatus = 'new' }
+        if (!jobhost) { jobhost = '' }
+        if (!jobtask) { jobtask = '' }
+        if (!initialTime) {initialTime = new Date()}
+
+        // post to API
+        const record = {
+            custid,
+            jobtype,
+            jobstatus: jobstatus,
+            jobhost: jobhost,
+            jobtask: jobtask,
+            initialTime: initialTime,
+            lastUpdateTime: initialTime
+        }
+        const newRecord = await Data.add(record)
+        response.writeHead(201, {'Content-Type': 'application/json'})
+        return response.end(JSON.stringify(newRecord))
     } catch (error) {
         console.log(error)
+        response.writeHead(500, {'Content-Type': 'application/json'})
+        return response.end(JSON.stringify(
+            {
+                'message': 'request not processed trycatch caught an error in ' + getFuncName(),
+                'error': error
+            }))
     }
 }
 
@@ -102,6 +128,12 @@ async function updateItem(request, response, identifier) {
     }
     } catch (error) {
         console.log(error)
+        response.writeHead(500, {'Content-Type': 'application/json'})
+        return response.end(JSON.stringify(
+            {
+                'message': 'request not processed trycatch caught an error in ' + getFuncName(),
+                'error': error
+            }))
     }
 }
 
@@ -121,8 +153,13 @@ async function deleteItem(request, response, identifier) {
         }
     } catch (error) {
         console.log(error)
+        response.writeHead(500, {'Content-Type': 'application/json'})
+        return response.end(JSON.stringify(
+            {
+                'message': 'request not processed trycatch caught an error in ' + getFuncName(),
+                'error': error
+            }))
     }
-
 }
 
 async function assignWork(request, response, record, hostname, newcustid='') {
@@ -145,6 +182,12 @@ async function assignWork(request, response, record, hostname, newcustid='') {
     }
     } catch (error) {
         console.log(error)
+        response.writeHead(500, {'Content-Type': 'application/json'})
+        return response.end(JSON.stringify(
+            {
+                'message': 'request not processed trycatch caught an error in ' + getFuncName(),
+                'error': error
+            }))
     }
 }
 

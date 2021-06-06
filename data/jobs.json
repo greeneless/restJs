@@ -18,31 +18,13 @@
     "jobhost": "mhwisdep01"
   },
   {
-    "id": "guidguidguidguidguid",
-    "custid": "CUSTID",
-    "jobtype": "Update:RS2100-00",
-    "jobstatus": "FAIL",
-    "jobtask": "ModProc",
-    "jobhost": "mhwisdep02"
-  },
-  {
-    "id": "2a156677-7cb5-4691-ad3d-5c1ae2b5782c",
-    "custid": "24UNET",
-    "jobtype": "RS:2100-00",
-    "jobstatus": "queued",
-    "jobhost": "mhwisdep01",
-    "jobtask": "",
-    "initialTime": "2021-06-05T20:46:48.585Z",
-    "lastUpdateTime": "2021-06-05T20:46:48.585Z"
-  },
-  {
-    "id": "03c7ff8a-abb7-49af-9d9f-4fed13254809",
+    "id": "e719f000-0e23-4917-ba52-f8f0f12eabac",
     "custid": "BAROAN",
     "jobtype": "RS2101-11",
-    "jobstatus": "queued",
-    "jobhost": "mhwisdep01",
+    "jobstatus": "new",
+    "jobhost": "",
     "jobtask": "",
-    "initialTime": "2021-06-06T00:09:31.085Z",
-    "lastUpdateTime": "2021-06-06T00:09:31.085Z"
+    "initialTime": "2021-06-06T14:04:43.045Z",
+    "lastUpdateTime": "2021-06-06T14:04:43.045Z"
   }
 ]
