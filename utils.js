@@ -1,6 +1,13 @@
 const { rejects } = require('assert')
 const fs = require('fs')
 
+function validateDataSource(filename) {
+    if (!fs.existsSync(filename)) {
+        console.log('Writing missing file')
+        writeToFile(filename, [])
+    }
+}
+
 function getFuncName() {
     return getFuncName.caller.name
 }
@@ -51,5 +58,6 @@ module.exports = {
     writeToFile,
     getPostData,
     loadFromFile,
-    arrayFromRootJsonProperty
+    arrayFromRootJsonProperty,
+    validateDataSource
 }
