@@ -19,13 +19,13 @@ const server = http.createServer((request, response) => {
                 record => record.jobstatus.toString().toLowerCase() === 'new'
             )
             // create an array based on the jobData initialTime property
-            const dates = arrayFromRootJsonProperty(jobData, 'initialTime')
+            const jobDates = arrayFromRootJsonProperty(jobData, 'initialTime')
                 // make sure all items are dates, future date undefined to 2100
                 .map(d => d === undefined ? new Date('2100/01/01') : new Date(d))
 
             // remap dates as strings and find index of string
-            const oldestDateIndex = dates.map(d => d.toString())
-                .indexOf(new Date(Math.min.apply(null, dates)).toString())
+            const oldestDateIndex = jobDates.map(d => d.toString())
+                .indexOf(new Date(Math.min.apply(null, jobDates)).toString())
 
             // assign oldest available new status job to requesting engine
             assignWork(request, response, jobData[oldestDateIndex], identifier)
