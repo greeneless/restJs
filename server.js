@@ -12,12 +12,12 @@ const server = http.createServer((request, response) => {
         if (request.method === 'GET' && request.url.match(/\/api\/request\/([a-z0-9-]+$)/)) {
             // identifier is sdehostname
             console.log('Processing request for work from ' + identifier)
+            response.writeHead(200, { 'Content-Type': 'application/json' })
 
             // collect jobs data from jobs local file filtered to jobstatus: new
             const jobData = JSON.parse(loadFromFile('./data/jobs.json')).filter(
                 record => record.jobstatus.toString().toLowerCase() === 'new'
             )
-
             // create an array based on the jobData initialTime property
             const dates = arrayFromRootJsonProperty(jobData, 'initialTime')
                 // make sure all items are dates, future date undefined to 2100
@@ -27,8 +27,8 @@ const server = http.createServer((request, response) => {
             const oldestDateIndex = dates.map(d => d.toString())
                 .indexOf(new Date(Math.min.apply(null, dates)).toString())
 
-            // get date item by index of oldest date property
-            getItem(request, response, jobData[oldestDateIndex].id)
+            // assign oldest available new status job to requesting engine
+            assignWork(request, response, jobData[oldestDateIndex], identifier)
         } else if (request.method === 'PUT' && request.url.includes('/api/jobs')) {
             updateItem(request, response, identifier)
         } else if (request.method === 'DELETE' && request.url.includes('/api/jobs')) {

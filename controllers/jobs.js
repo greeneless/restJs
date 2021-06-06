@@ -16,23 +16,6 @@ async function getData(request, response) {
 
 }
 
-async function getOldestUnassignedJobUuid() {
-    try {
-        const records = JSON.stringify(await Data.findAll())
-        let status = []
-        for (let i = 0; i < records.length; i++) {
-            if (records[i].jobstatus.lower() === 'new') {
-                status.push(records[i].custid)
-            }
-        }
-        return status
-        
-    } catch (error) {
-        console.log(error)
-    }
-
-}
-
 // change to function getItem
 // @desc    Inquire
 // @route   GET /api/jobs/:id
@@ -104,13 +87,15 @@ async function updateItem(request, response, identifier) {
         } else {
 
         const body = await getPostData(request)
-        let { jobtype, jobstatus, jobhost, jobtask } = JSON.parse(body)
+        let { jobtype, jobstatus, jobhost, jobtask, initialTime, lastUpdateTime } = JSON.parse(body)
         const recordData = {
             custid: record.custid,
             jobtype: jobtype || record.jobtype,
             jobstatus: jobstatus || record.jobstatus,
             jobhost: jobhost || record.jobhost,
-            jobtask: jobtask || record.jobtask
+            jobtask: jobtask || record.jobtask,
+            initialTime: initialTime || record.initialTime,
+            lastUpdateTime: lastUpdateTime || record.lastUpdateTime
         }
         const updatedRecord = await Data.update(recordData, identifier)
         return response.end(JSON.stringify(updatedRecord))
@@ -119,7 +104,6 @@ async function updateItem(request, response, identifier) {
         console.log(error)
     }
 }
-
 
 // change to function delItem
 // @desc    Delete record
@@ -141,10 +125,27 @@ async function deleteItem(request, response, identifier) {
 
 }
 
-async function assignWork() {
-    const output = await getOldestUnassignedJobUuid()
-    console.log(output)
-    return 0;
+async function assignWork(request, response, record, hostname, newcustid='') {
+    try {
+        if (!record) {
+            response.end(JSON.stringify({'message': 'no work offered'}))
+        } else {
+
+        const recordData = {
+            custid: newcustid || record.custid,
+            jobtype: record.jobtype,
+            jobstatus: 'queued',
+            jobhost: hostname,
+            jobtask: record.jobtask,
+            initialTime: record.initialTime,
+            lastUpdateTime: record.lastUpdateTime
+        }
+        const updatedRecord = await Data.update(recordData, record.id)
+        return response.end(JSON.stringify(updatedRecord))
+    }
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 module.exports = {
