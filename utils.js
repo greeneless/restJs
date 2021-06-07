@@ -3,8 +3,10 @@ const fs = require('fs')
 
 function validateDataSource(filename) {
     if (!fs.existsSync(filename)) {
-        console.log('Writing missing file')
+        console.log('Required source file was missing. Created empty array at ' + filename)
         writeToFile(filename, [])
+    } else {
+        console.log('Successfully located source data ' + filename)
     }
 }
 
