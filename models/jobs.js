@@ -1,6 +1,5 @@
 const content = require('../data/jobs')
-const { v4: uuidv4 } = require('uuid')
-const { writeToFile } = require('../utils')
+const { writeToFile, toBase64 } = require('../utils')
 
 function findAll() {
     return new Promise((resolve, reject) => {
@@ -17,7 +16,8 @@ function findById(identifer) {
 
 function add(newData) {
     return new Promise((resolve, reject) => {
-        const newRecord = {id: uuidv4(),...newData}
+        console.log(newData['custid'], newData['jobtype'])
+        const newRecord = {id: toBase64(newData['jobtype'] + newData['custid']),...newData}
         content.push(newRecord)
 
         writeToFile('./data/jobs.json', content)

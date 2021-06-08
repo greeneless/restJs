@@ -2,11 +2,15 @@ const { rejects } = require('assert')
 const fs = require('fs')
 
 function validateDataSource(filename) {
-    if (!fs.existsSync(filename)) {
+    if (fs.existsSync(filename)) {
+        console.log('Successfully located source data ' + filename)
+        if (fs.statSync(filename).size === 0) {
+            console.log('Destination source file is zero bytes, writing empty array... ')
+            writeToFile(filename, [])
+        }
+    } else {
         console.log('Required source file was missing. Created empty array at ' + filename)
         writeToFile(filename, [])
-    } else {
-        console.log('Successfully located source data ' + filename)
     }
 }
 
@@ -55,11 +59,20 @@ function getPostData(request) {
     })
 }
 
+function toBase64(string) {
+    return Buffer.from(string, 'utf-8').toString('base64')
+}
+
+function fromBase64(base64string) {
+    return Buffer.from(base64string, 'base64').toString('utf-8')
+}
+
 module.exports = {
     getFuncName,
     writeToFile,
     getPostData,
     loadFromFile,
     arrayFromRootJsonProperty,
-    validateDataSource
+    validateDataSource,
+    toBase64
 }

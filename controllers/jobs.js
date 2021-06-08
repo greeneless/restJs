@@ -168,22 +168,22 @@ async function deleteItem(request, response, identifier) {
 
 async function assignWork(request, response, record, hostname, newcustid='') {
     try {
+        response.writeHead(200, {'Content-Type': 'application/json'})
         if (!record) {
             response.end(JSON.stringify({'message': 'no work offered'}))
         } else {
-
-        const recordData = {
-            custid: newcustid || record.custid,
-            jobtype: record.jobtype,
-            jobstatus: 'queued',
-            jobhost: hostname,
-            jobtask: record.jobtask,
-            initialTime: record.initialTime,
-            lastUpdateTime: record.lastUpdateTime
-        }
-        const updatedRecord = await Data.update(recordData, record.id)
-        return response.end(JSON.stringify(updatedRecord))
-        // return response.end(JSON.stringify(updatedRecord, null, 2))
+            const recordData = {
+                custid: newcustid || record.custid,
+                jobtype: record.jobtype,
+                jobstatus: 'queued',
+                jobhost: hostname,
+                jobtask: record.jobtask,
+                initialTime: record.initialTime,
+                lastUpdateTime: record.lastUpdateTime
+            }
+            const updatedRecord = await Data.update(recordData, record.id)
+            return response.end(JSON.stringify(updatedRecord))
+            // return response.end(JSON.stringify(updatedRecord, null, 2))
     }
     } catch (error) {
         console.log(error)
