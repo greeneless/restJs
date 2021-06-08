@@ -5,11 +5,11 @@ const port = process.env.NODEPORT || 5000
 const server = http.createServer((request, response) => {
     console.log(request.url, request.method)
     let identifier = undefined
-    if (request.url.match(/\/([a-z0-9]+)\/([a-z0-9]+)\/([a-z0-9-]+$)/)) {
+    if (request.url.match(/\/([a-z0-9]+)\/([a-z0-9]+)\/([a-zA-Z0-9=]+$)/)) {
         identifier = request.url.split('/').pop()
     }
     if (identifier) {
-        if (request.method === 'GET' && request.url.match(/\/api\/request\/([a-z0-9-]+$)/)) {
+        if (request.method === 'GET' && request.url.match(/\/api\/request\/([a-zA-Z0-9=]+$)/)) {
             // identifier is sdehostname
             console.log('Processing request for work from ' + identifier)
             response.writeHead(200, { 'Content-Type': 'application/json' })
