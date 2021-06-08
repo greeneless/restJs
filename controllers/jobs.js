@@ -10,6 +10,7 @@ async function getData(request, response) {
 
         response.writeHead(200, { 'Content-Type': 'application/json' })
         response.end(JSON.stringify(records))
+        // return response.end(JSON.stringify(records, null, 2))
     } catch (error) {
         console.log(error)
         response.writeHead(500, {'Content-Type': 'application/json'})
@@ -33,6 +34,7 @@ async function getItem(request, response, identifier) {
             response.end(JSON.stringify({'message': 'record not found'}))
         } else {
             response.end(JSON.stringify(record))
+            // return response.end(JSON.stringify(record, null, 2))
         }
     } catch (error) {
         console.log(error)
@@ -89,6 +91,7 @@ async function addItem(request, response) {
         const newRecord = await Data.add(record)
         response.writeHead(201, {'Content-Type': 'application/json'})
         return response.end(JSON.stringify(newRecord))
+        // return response.end(JSON.stringify(newRecord, null, 2))
     } catch (error) {
         console.log(error)
         response.writeHead(500, {'Content-Type': 'application/json'})
@@ -125,6 +128,7 @@ async function updateItem(request, response, identifier) {
         }
         const updatedRecord = await Data.update(recordData, identifier)
         return response.end(JSON.stringify(updatedRecord))
+        // return response.end(JSON.stringify(updatedRecord, null, 2))
     }
     } catch (error) {
         console.log(error)
@@ -179,6 +183,7 @@ async function assignWork(request, response, record, hostname, newcustid='') {
         }
         const updatedRecord = await Data.update(recordData, record.id)
         return response.end(JSON.stringify(updatedRecord))
+        // return response.end(JSON.stringify(updatedRecord, null, 2))
     }
     } catch (error) {
         console.log(error)

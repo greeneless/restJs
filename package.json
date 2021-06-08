@@ -7,7 +7,6 @@
     "nodemon": "^2.0.7",
     "uuid": "^8.3.2"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "preboot": "node preboot.js",
