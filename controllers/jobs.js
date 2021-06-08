@@ -59,7 +59,7 @@ async function addItem(request, response) {
             return response.end(JSON.stringify({'message': 'received POST ' + request.url + ' with no body content.'}))
         }
 
-        let { custid, jobtype, jobstatus, jobhost, jobtask, initialTime } = JSON.parse(body)
+        let { custid, jobtype, jobstatus, jobhost, jobtask } = JSON.parse(body)
 
         // guard request is missing required fields
         if (!custid || !jobtype) {
@@ -76,7 +76,6 @@ async function addItem(request, response) {
         if (!jobstatus) { jobstatus = 'new' }
         if (!jobhost) { jobhost = '' }
         if (!jobtask) { jobtask = '' }
-        if (!initialTime) {initialTime = new Date()}
 
         // post to API
         const record = {
@@ -84,9 +83,7 @@ async function addItem(request, response) {
             jobtype,
             jobstatus: jobstatus,
             jobhost: jobhost,
-            jobtask: jobtask,
-            initialTime: initialTime,
-            lastUpdateTime: initialTime
+            jobtask: jobtask
         }
         const newRecord = await Data.add(record)
         response.writeHead(201, {'Content-Type': 'application/json'})

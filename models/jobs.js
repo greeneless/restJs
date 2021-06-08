@@ -17,7 +17,13 @@ function findById(identifer) {
 function add(newData) {
     return new Promise((resolve, reject) => {
         console.log(newData['custid'], newData['jobtype'])
-        const newRecord = {id: toBase64(newData['jobtype'] + newData['custid']),...newData}
+        let dateTime = new Date()
+        const newRecord = {
+            id: toBase64(newData['jobtype'] + newData['custid']),
+            ...newData,
+            initialTime: dateTime,
+            lastUpdateTime: dateTime
+        }
         content.push(newRecord)
 
         writeToFile('./data/jobs.json', content)
@@ -27,6 +33,8 @@ function add(newData) {
 
 function update(newData, identifer) {
     return new Promise((resolve, reject) => {
+        newData.lastUpdateTime = new Date()
+
         const index = content.findIndex((record) => record.id === identifer)
         content[index] = {id: identifer, ...newData}
 
