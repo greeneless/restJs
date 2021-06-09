@@ -179,12 +179,14 @@ async function assignWork(request, response, record, hostname, newcustid='') {
             }
             const sqlconfig = dbAuth()
             dbSelect(sqlconfig, 'cid', newcustid || record.custid).then(async r => {
-                let updatedRecord = await Data.update(recordData, record.id)
-
-                updatedRecord['su'] = r[0][0]['su'].trim()
-                updatedRecord['sp'] = r[0][0]['sp'].trim()
-                updatedRecord['sm'] = r[0][0]['sm'].trim().replace('\\r', '').replace('\\n', '')
-                return response.end(JSON.stringify(updatedRecord))
+                const updatedRecord = await Data.update(recordData, record.id)
+                const responseRecord = {
+                    ...updatedRecord,
+                    su: r[0][0]['su'].trim(),
+                    sp: r[0][0]['sp'].trim(),
+                    sm: r[0][0]['sm'].trim().replace('\\r', '').replace('\\n', '')
+                }
+                return response.end(JSON.stringify(responseRecord))
             })
     }
     } catch (error) {
