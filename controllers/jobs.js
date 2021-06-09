@@ -1,6 +1,6 @@
 const Data = require('../models/jobs')
-const { getPostData, getFuncName } = require('../utils')
-
+const { dbSelect } = require('../dbo')
+const { getPostData, getFuncName, dbAuth } = require('../utils')
 // change to function getData
 // @desc    Retrieve bulk
 // @route   GET /api/jobs/
@@ -123,7 +123,6 @@ async function updateItem(request, response, identifier) {
             initialTime: initialTime || record.initialTime,
             lastUpdateTime: lastUpdateTime || record.lastUpdateTime
         }
-        const updatedRecord = await Data.update(recordData, identifier)
         return response.end(JSON.stringify(updatedRecord))
         // return response.end(JSON.stringify(updatedRecord, null, 2))
     }
@@ -178,9 +177,15 @@ async function assignWork(request, response, record, hostname, newcustid='') {
                 initialTime: record.initialTime,
                 lastUpdateTime: record.lastUpdateTime
             }
-            const updatedRecord = await Data.update(recordData, record.id)
-            return response.end(JSON.stringify(updatedRecord))
-            // return response.end(JSON.stringify(updatedRecord, null, 2))
+            const sqlconfig = dbAuth()
+            dbSelect(sqlconfig, 'cid', newcustid || record.custid).then(async r => {
+                let updatedRecord = await Data.update(recordData, record.id)
+
+                updatedRecord['su'] = r[0][0]['su'].trim()
+                updatedRecord['sp'] = r[0][0]['sp'].trim()
+                updatedRecord['sm'] = r[0][0]['sm'].trim().replace('\\r', '').replace('\\n', '')
+                return response.end(JSON.stringify(updatedRecord))
+            })
     }
     } catch (error) {
         console.log(error)

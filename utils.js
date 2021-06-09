@@ -1,5 +1,6 @@
 const { rejects } = require('assert')
 const fs = require('fs')
+const ini = require('ini')
 
 function validateDataSource(filename) {
     if (fs.existsSync(filename)) {
@@ -59,6 +60,22 @@ function getPostData(request) {
     })
 }
 
+function dbAuth() {
+    try {
+        const config = ini.parse(fs.readFileSync('\\\\mhwissmp01\\Packages\\Install_Tools\\MSPB_SetupCfg.INI', 'utf-8'))
+        const mssqlconfig = {
+                server: config.SQL.Server,
+                user: config.SQL.SqlUid,
+                password: config.SQL.SqlPwd + "#",
+                database: config.SQL.Database,
+                encrypt: false
+        }
+        return mssqlconfig
+    } catch (error) {
+        throw error
+    }
+}
+
 function toBase64(string) {
     return Buffer.from(string, 'utf-8').toString('base64')
 }
@@ -74,5 +91,6 @@ module.exports = {
     loadFromFile,
     arrayFromRootJsonProperty,
     validateDataSource,
+    dbAuth,
     toBase64
 }
