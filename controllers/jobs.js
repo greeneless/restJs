@@ -178,7 +178,7 @@ async function assignWork(request, response, record, hostname, newcustid='') {
                 lastUpdateTime: record.lastUpdateTime
             }
             const sqlconfig = dbAuth()
-            dbSelect(sqlconfig, 'cid', newcustid || record.custid).then(async r => {
+            dbSelect(sqlconfig, 'dbo.cust', 'cid', newcustid || record.custid).then(async r => {
                 const updatedRecord = await Data.update(recordData, record.id)
                 const responseRecord = {
                     ...updatedRecord,
