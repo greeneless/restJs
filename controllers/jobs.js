@@ -222,20 +222,20 @@ async function jobControl(request, response, identifier) {
         if (!record) {
             response.end(JSON.stringify({'message': 'record not found'}))
         } else {
-
-        const body = await getPostData(request)
-        let { jobtype, jobstatus, jobhost, jobtask, initialTime, lastUpdateTime } = JSON.parse(body)
-        const recordData = {
-            custid: record.custid,
-            jobtype: jobtype || record.jobtype,
-            jobstatus: jobstatus || record.jobstatus,
-            jobhost: jobhost || record.jobhost,
-            jobtask: jobtask || record.jobtask,
-            initialTime: initialTime || record.initialTime,
-            lastUpdateTime: lastUpdateTime || record.lastUpdateTime
-        }
-        const updatedRecord = await Data.update(recordData, record.id)
-        return response.end(JSON.stringify(updatedRecord))
+            let control = ''
+            if (record.jobstatus.toLowerCase() === 'fail') {control = 'wait'}
+            const recordData = {
+                custid: record.custid,
+                jobtype: record.jobtype,
+                jobstatus: record.jobstatus,
+                jobhost: record.jobhost,
+                jobtask: record.jobtask,
+                jobcontrol: control || record.jobcontrol,
+                initialTime: record.initialTime,
+                lastUpdateTime: record.lastUpdateTime
+            }
+            const updatedRecord = await Data.update(recordData, record.id)
+            return response.end(JSON.stringify(updatedRecord))
     }
     } catch (error) {
         console.log(error)
@@ -248,6 +248,45 @@ async function jobControl(request, response, identifier) {
     }
 }
 
+async function jobFinal(request, response, identifier, action) {
+    if (action === 'pass') {
+        // we will process this as a deletion
+        return deleteItem(request, response, identifier)
+    }
+    if (action === 'fail') {
+        try {
+            response.writeHead(200, { 'Content-Type': 'application/json' })
+    
+            const record = await Data.findById(identifier)
+            if (!record) {
+                response.end(JSON.stringify({'message': 'record not found'}))
+            } else {
+                const control = 'wait'
+                const status = 'aborted'
+                const recordData = {
+                    custid: record.custid,
+                    jobtype: record.jobtype,
+                    jobstatus: status,
+                    jobhost: record.jobhost,
+                    jobtask: record.jobtask,
+                    jobcontrol: control,
+                    initialTime: record.initialTime,
+                    lastUpdateTime: record.lastUpdateTime
+                }
+                const updatedRecord = await Data.update(recordData, record.id)
+                return response.end(JSON.stringify(updatedRecord))
+        }
+        } catch (error) {
+            console.log(error)
+            response.writeHead(500, {'Content-Type': 'application/json'})
+            return response.end(JSON.stringify(
+                {
+                    'message': 'request not processed trycatch caught an error in ' + getFuncName(),
+                    'error': error
+                }))
+        }    
+    }
+}
 module.exports = {
     getData,
     getItem,
@@ -256,5 +295,6 @@ module.exports = {
     deleteItem,
     rejectRequest,
     assignWork,
-    jobControl
+    jobControl,
+    jobFinal
 }

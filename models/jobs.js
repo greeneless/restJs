@@ -16,7 +16,6 @@ function findById(identifer) {
 
 function add(newData) {
     return new Promise((resolve, reject) => {
-        console.log(newData['custid'], newData['jobtype'])
         let dateTime = new Date()
         const newRecord = {
             id: toBase64(newData['jobtype'] + newData['custid']),
