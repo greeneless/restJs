@@ -1,6 +1,6 @@
 const Data = require('../models/jobs')
 const { dbSelect } = require('../dbo')
-const { getPostData, getFuncName, dbAuth } = require('../utils')
+const { getPostData, getFuncName, toBase64, dbAuth } = require('../utils')
 // change to function getData
 // @desc    Retrieve bulk
 // @route   GET /api/jobs/
@@ -59,7 +59,7 @@ async function addItem(request, response) {
             return response.end(JSON.stringify({'message': 'received POST ' + request.url + ' with no body content.'}))
         }
 
-        let { custid, jobtype, jobstatus, jobhost, jobtask } = JSON.parse(body)
+        let { custid, jobtype, jobstatus, jobhost, jobtask, jobcontrol } = JSON.parse(body)
 
         // guard request is missing required fields
         if (!custid || !jobtype) {
@@ -74,6 +74,7 @@ async function addItem(request, response) {
 
         // if not val set val
         if (!jobstatus) { jobstatus = 'new' }
+        if (!jobcontrol) {jobcontrol = ''}
         if (!jobhost) { jobhost = '' }
         if (!jobtask) { jobtask = '' }
 
@@ -83,11 +84,24 @@ async function addItem(request, response) {
             jobtype,
             jobstatus: jobstatus,
             jobhost: jobhost,
-            jobtask: jobtask
+            jobtask: jobtask,
+            jobcontrol: jobcontrol
         }
-        const newRecord = await Data.add(record)
-        response.writeHead(201, {'Content-Type': 'application/json'})
-        return response.end(JSON.stringify(newRecord))
+        //const identifier = toBase64(jobtype + custid)
+        const checkExist = await Data.findById(toBase64(jobtype + custid))
+        .then(async r => { 
+            if (!r) {
+                const newRecord = await Data.add(record)
+                response.writeHead(201, {'Content-Type': 'application/json'})
+                return response.end(JSON.stringify(newRecord))
+            } else {
+                response.writeHead(200, {'Content-Type': 'application/json'})
+                return response.end(JSON.stringify({'message': 'record already exists'}))
+            }
+        })
+        // const newRecord = await Data.add(record)
+        // response.writeHead(201, {'Content-Type': 'application/json'})
+        // return response.end(JSON.stringify(newRecord))
         // return response.end(JSON.stringify(newRecord, null, 2))
     } catch (error) {
         console.log(error)
@@ -123,6 +137,7 @@ async function updateItem(request, response, identifier) {
             initialTime: initialTime || record.initialTime,
             lastUpdateTime: lastUpdateTime || record.lastUpdateTime
         }
+        const updatedRecord = await Data.update(recordData, record.id)
         return response.end(JSON.stringify(updatedRecord))
         // return response.end(JSON.stringify(updatedRecord, null, 2))
     }
@@ -174,6 +189,7 @@ async function assignWork(request, response, record, hostname, newcustid='') {
                 jobstatus: 'queued',
                 jobhost: hostname,
                 jobtask: record.jobtask,
+                jobcontrol: record.jobcontrol,
                 initialTime: record.initialTime,
                 lastUpdateTime: record.lastUpdateTime
             }
