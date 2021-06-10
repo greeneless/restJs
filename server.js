@@ -1,4 +1,4 @@
-const { getData, getItem, addItem, updateItem, deleteItem, assignWork } = require('./controllers/jobs')
+const { getData, getItem, addItem, updateItem, deleteItem, assignWork, jobControl, rejectRequest } = require('./controllers/jobs')
 const { loadFromFile, arrayFromRootJsonProperty } = require('./utils.js')
 const http = require('http')
 const port = process.env.NODEPORT || 5000
@@ -33,37 +33,32 @@ const server = http.createServer((request, response) => {
             // job processing with identifier action
             if (request.method === 'GET' && request.url.match(/\/api\/jobs\/control\/([a-zA-Z0-9=]+$)/)) {
                 console.log('Found endpoint ' + request.url)
-                getItem(request, response, identifier)
+                jobControl(request, response, identifier)
             } else if (request.method === 'POST' && request.url.includes('/api/jobs/final')) {
                 const action = request.url.split('/')[4]
                 if (action) {
                     if (action.toLowerCase().includes('fail')) {
-                        console.log('Found endpoint ' + request.url)
                         getItem(request, response, identifier)
                     } else if (action.toLowerCase().includes('pass')) {
-                        console.log('Found endpoint ' + request.url)
                         getItem(request, response, identifier)
                     } else {
                         // not found did not match any above
-                        response.writeHead(404, { 'Content-Type': 'application/json' })
-                        response.end(JSON.stringify({'message': 'route not found. Missing required pass/fail path.'}))
+                        rejectRequest(response,  'route not found; path pass/fail required for jobs/final.', 404)
                     }
                 }
-            } else if (request.method === 'PUT' && request.url.includes('/api/jobs')) {
+            } else if (request.method === 'PUT' && request.url.match(/\/api\/jobs\/([a-zA-Z0-9=]+$)/)) {
                 updateItem(request, response, identifier)
-            } else if (request.method === 'DELETE' && request.url.includes('/api/jobs')) {
+            } else if (request.method === 'DELETE' && request.url.match(/\/api\/jobs\/([a-zA-Z0-9=]+$)/)) {
                 deleteItem(request, response, identifier)
-            } else if (request.method === 'GET' && request.url.includes('/api/jobs')) {
+            } else if (request.method === 'GET' && request.url.match(/\/api\/jobs\/([a-zA-Z0-9=]+$)/)) {
                 getItem(request, response, identifier)
             } else {
                 // not found did not match any above
-                response.writeHead(404, { 'Content-Type': 'application/json' })
-                response.end(JSON.stringify({'message': request.url + ' route not found for request identifier ' + identifier}))
+                rejectRequest(response,  'route not found. route received as ' + request.url, 404)
             }
         } else {
             // not found did not match any above
-            response.writeHead(404, { 'Content-Type': 'application/json' })
-            response.end(JSON.stringify({'message': request.url + ' route not found for request identifier ' + identifier}))
+            rejectRequest(response,  'route not found. route received as ' + request.url, 404)
         }
     } else {
         // job processing without identifier action
@@ -76,8 +71,7 @@ const server = http.createServer((request, response) => {
             }
         } else {
             // not found did not match any above
-            response.writeHead(404, { 'Content-Type': 'application/json' })
-            response.end(JSON.stringify({'message': 'route not found'}))
+            rejectRequest(response,  'route not found. route received as ' + request.url, 404)
         }
     }
 })

@@ -1,16 +1,19 @@
 const Data = require('../models/jobs')
 const { dbSelect } = require('../dbo')
 const { getPostData, getFuncName, toBase64, dbAuth } = require('../utils')
-// change to function getData
+
+function rejectRequest(response, message, statuscode) {
+        response.writeHead(statuscode, { 'Content-Type': 'application/json' })
+        response.end(JSON.stringify({'message': message}))
+}
+
 // @desc    Retrieve bulk
 // @route   GET /api/jobs/
 async function getData(request, response) {
     try {
         const records = await Data.findAll()
-
         response.writeHead(200, { 'Content-Type': 'application/json' })
         response.end(JSON.stringify(records))
-        // return response.end(JSON.stringify(records, null, 2))
     } catch (error) {
         console.log(error)
         response.writeHead(500, {'Content-Type': 'application/json'})
@@ -22,7 +25,6 @@ async function getData(request, response) {
     }
 }
 
-// change to function getItem
 // @desc    Inquire
 // @route   GET /api/jobs/:id
 async function getItem(request, response, identifier) {
@@ -34,7 +36,6 @@ async function getItem(request, response, identifier) {
             response.end(JSON.stringify({'message': 'record not found'}))
         } else {
             response.end(JSON.stringify(record))
-            // return response.end(JSON.stringify(record, null, 2))
         }
     } catch (error) {
         console.log(error)
@@ -47,7 +48,6 @@ async function getItem(request, response, identifier) {
     }
 }
 
-// change to function addItem 
 // @desc    Update
 // @route   POST /api/jobs/
 async function addItem(request, response) {
@@ -87,8 +87,9 @@ async function addItem(request, response) {
             jobtask: jobtask,
             jobcontrol: jobcontrol
         }
-        //const identifier = toBase64(jobtype + custid)
-        const checkExist = await Data.findById(toBase64(jobtype + custid))
+        // make sure we're not posting the same identifier
+        const identifier = toBase64(jobtype + custid)
+        const checkExist = await Data.findById(identifier)
         .then(async r => { 
             if (!r) {
                 const newRecord = await Data.add(record)
@@ -96,13 +97,9 @@ async function addItem(request, response) {
                 return response.end(JSON.stringify(newRecord))
             } else {
                 response.writeHead(200, {'Content-Type': 'application/json'})
-                return response.end(JSON.stringify({'message': 'record already exists'}))
+                return response.end(JSON.stringify({'message': 'record already exists with identifier ' + identifier}))
             }
         })
-        // const newRecord = await Data.add(record)
-        // response.writeHead(201, {'Content-Type': 'application/json'})
-        // return response.end(JSON.stringify(newRecord))
-        // return response.end(JSON.stringify(newRecord, null, 2))
     } catch (error) {
         console.log(error)
         response.writeHead(500, {'Content-Type': 'application/json'})
@@ -114,7 +111,6 @@ async function addItem(request, response) {
     }
 }
 
-// change to function updateItem 
 // @desc    Update
 // @route   PUT /api/jobs/:id
 async function updateItem(request, response, identifier) {
@@ -139,7 +135,6 @@ async function updateItem(request, response, identifier) {
         }
         const updatedRecord = await Data.update(recordData, record.id)
         return response.end(JSON.stringify(updatedRecord))
-        // return response.end(JSON.stringify(updatedRecord, null, 2))
     }
     } catch (error) {
         console.log(error)
@@ -152,7 +147,6 @@ async function updateItem(request, response, identifier) {
     }
 }
 
-// change to function delItem
 // @desc    Delete record
 // @route   DELETE /api/jobs/:id
 async function deleteItem(request, response, identifier) {
@@ -177,6 +171,8 @@ async function deleteItem(request, response, identifier) {
     }
 }
 
+// @desc    Update record for accepted job or return no work offered
+// @route   GET /api/request/:hostname
 async function assignWork(request, response, record, hostname, newcustid='') {
     try {
         response.writeHead(200, {'Content-Type': 'application/json'})
@@ -216,11 +212,49 @@ async function assignWork(request, response, record, hostname, newcustid='') {
     }
 }
 
+// @desc    Update record to signal sde [ wait, next, retry, quit ]
+// @route   GET /api/jobs/control/:id
+async function jobControl(request, response, identifier) {
+    try {
+        response.writeHead(200, { 'Content-Type': 'application/json' })
+
+        const record = await Data.findById(identifier)
+        if (!record) {
+            response.end(JSON.stringify({'message': 'record not found'}))
+        } else {
+
+        const body = await getPostData(request)
+        let { jobtype, jobstatus, jobhost, jobtask, initialTime, lastUpdateTime } = JSON.parse(body)
+        const recordData = {
+            custid: record.custid,
+            jobtype: jobtype || record.jobtype,
+            jobstatus: jobstatus || record.jobstatus,
+            jobhost: jobhost || record.jobhost,
+            jobtask: jobtask || record.jobtask,
+            initialTime: initialTime || record.initialTime,
+            lastUpdateTime: lastUpdateTime || record.lastUpdateTime
+        }
+        const updatedRecord = await Data.update(recordData, record.id)
+        return response.end(JSON.stringify(updatedRecord))
+    }
+    } catch (error) {
+        console.log(error)
+        response.writeHead(500, {'Content-Type': 'application/json'})
+        return response.end(JSON.stringify(
+            {
+                'message': 'request not processed trycatch caught an error in ' + getFuncName(),
+                'error': error
+            }))
+    }
+}
+
 module.exports = {
     getData,
     getItem,
     addItem,
     updateItem,
     deleteItem,
-    assignWork
+    rejectRequest,
+    assignWork,
+    jobControl
 }

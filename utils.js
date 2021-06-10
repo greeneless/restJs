@@ -24,11 +24,10 @@ function writeToFile(filename, content) {
 }
 
 function loadFromFile(filename) {
-    // Read a json source file
-    var output = fs.readFileSync(filename, 'utf-8', function(error, data) {
-            if (error) throw error;
+    const output = fs.readFileSync(filename, 'utf-8', function(error, data) {
+            if (error) throw error
     })
-    return output;
+    return output
 }
 
 function arrayFromRootJsonProperty(data, property) {
@@ -37,9 +36,9 @@ function arrayFromRootJsonProperty(data, property) {
         for (let i = 0; i < data.length; i++) {
             output.push(data[i][property])
         }
-        return output;
+        return output
     } catch (error) {
-        throw error;
+        throw error
     }
 }
 
