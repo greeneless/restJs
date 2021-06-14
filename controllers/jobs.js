@@ -1,7 +1,7 @@
 const Data = require('../models/jobs')
 const { dbSelect } = require('../dbo')
 const { getPostData, getFuncName, toBase64, dbAuth } = require('../utils')
-const { addHost } = require('../controllers/hosts') 
+const { addHost, checkHost } = require('../controllers/hosts') 
 
 function rejectRequest(response, message, statuscode) {
         response.writeHead(statuscode, { 'Content-Type': 'application/json' })
@@ -183,8 +183,16 @@ async function assignWork(request, response, record, hostname, newcustid='') {
         response.writeHead(200, {'Content-Type': 'application/json'})
         if (!record) {
             await addHost(hostname, '')
-            response.end(JSON.stringify({'message': 'no work offered'}))
+            return response.end(JSON.stringify({'message': 'no work offered'}))
         } else {
+            // guard host is busy
+            const hostCheck = await checkHost(hostname)
+            if (!hostCheck) {
+                return response.end(JSON.stringify({'message': 'requested host is busy'}))
+            }
+
+            // main logic
+            await addHost(hostname, record.id)
             const recordData = {
                 custid: newcustid || record.custid,
                 jobtype: record.jobtype,
@@ -205,7 +213,6 @@ async function assignWork(request, response, record, hostname, newcustid='') {
                     sp: r[0][0]['sp'].trim(),
                     sm: r[0][0]['sm'].trim().replace('\\r', '').replace('\\n', '')
                 }
-                await addHost(hostname, record.id)
                 return response.end(JSON.stringify(responseRecord))
             })
     }

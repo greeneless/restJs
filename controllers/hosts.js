@@ -124,10 +124,34 @@ async function deleteHost(request, response, identifier) {
     }
 }
 
+// @desc    Inquire
+// @route   GET /api/hosts/:id
+async function checkHost(identifier) {
+    try {
+        // make sure we're not posting the same identifier
+        const checkExist = await Data.findHostById(identifier)
+        .then(async r => { 
+            if (!r) {
+                return true
+            } else {
+                if (r.jobid) {
+                    return false
+                } else {
+                    return true
+                }
+            }
+        })
+        return checkExist
+    } catch (error) {
+        console.log(error)
+    }
+}
+
 module.exports = {
     getHosts,
     getHost,
     addHost,
     updateHost,
-    deleteHost
+    deleteHost,
+    checkHost
 }
