@@ -1,4 +1,5 @@
 const { getData, getItem, addItem, updateItem, deleteItem, assignWork, jobControl, jobFinal, rejectRequest } = require('./controllers/jobs')
+const { getHosts, getHost, addHost, updateHost, deleteHost } = require('./controllers/hosts')
 const { loadFromFile, arrayFromRootJsonProperty } = require('./utils.js')
 const http = require('http')
 const port = process.env.NODEPORT || 5000

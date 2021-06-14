@@ -1,6 +1,7 @@
 const Data = require('../models/jobs')
 const { dbSelect } = require('../dbo')
 const { getPostData, getFuncName, toBase64, dbAuth } = require('../utils')
+const { addHost } = require('../controllers/hosts') 
 
 function rejectRequest(response, message, statuscode) {
         response.writeHead(statuscode, { 'Content-Type': 'application/json' })
@@ -59,7 +60,7 @@ async function addItem(request, response) {
             return response.end(JSON.stringify({'message': 'received POST ' + request.url + ' with no body content.'}))
         }
 
-        let { custid, jobtype, jobstatus, jobhost, jobtask, jobcontrol } = JSON.parse(body)
+        let { custid, jobtype, jobstatus, jobhost, jobtask, jobcontrol, jobmsg } = JSON.parse(body)
 
         // guard request is missing required fields
         if (!custid || !jobtype) {
@@ -77,6 +78,7 @@ async function addItem(request, response) {
         if (!jobcontrol) {jobcontrol = ''}
         if (!jobhost) { jobhost = '' }
         if (!jobtask) { jobtask = '' }
+        if (!jobmsg) {jobmsg = ''}
 
         // post to API
         const record = {
@@ -85,7 +87,8 @@ async function addItem(request, response) {
             jobstatus: jobstatus,
             jobhost: jobhost,
             jobtask: jobtask,
-            jobcontrol: jobcontrol
+            jobcontrol: jobcontrol,
+            jobmsg: jobmsg
         }
         // make sure we're not posting the same identifier
         const identifier = toBase64(jobtype + custid)
@@ -123,13 +126,15 @@ async function updateItem(request, response, identifier) {
         } else {
 
         const body = await getPostData(request)
-        let { jobtype, jobstatus, jobhost, jobtask, initialTime, lastUpdateTime } = JSON.parse(body)
+        let { jobtype, jobstatus, jobhost, jobtask, jobcontrol, jobmsg, initialTime, lastUpdateTime } = JSON.parse(body)
         const recordData = {
             custid: record.custid,
             jobtype: jobtype || record.jobtype,
             jobstatus: jobstatus || record.jobstatus,
             jobhost: jobhost || record.jobhost,
             jobtask: jobtask || record.jobtask,
+            jobcontrol: jobcontrol || record.jobscontrol,
+            jobmsg: jobmsg || record.jobmsg,
             initialTime: initialTime || record.initialTime,
             lastUpdateTime: lastUpdateTime || record.lastUpdateTime
         }
@@ -177,6 +182,7 @@ async function assignWork(request, response, record, hostname, newcustid='') {
     try {
         response.writeHead(200, {'Content-Type': 'application/json'})
         if (!record) {
+            await addHost(hostname, '')
             response.end(JSON.stringify({'message': 'no work offered'}))
         } else {
             const recordData = {
@@ -186,6 +192,7 @@ async function assignWork(request, response, record, hostname, newcustid='') {
                 jobhost: hostname,
                 jobtask: record.jobtask,
                 jobcontrol: record.jobcontrol,
+                jobmsg: record.jobmsg,
                 initialTime: record.initialTime,
                 lastUpdateTime: record.lastUpdateTime
             }
@@ -198,6 +205,7 @@ async function assignWork(request, response, record, hostname, newcustid='') {
                     sp: r[0][0]['sp'].trim(),
                     sm: r[0][0]['sm'].trim().replace('\\r', '').replace('\\n', '')
                 }
+                await addHost(hostname, record.id)
                 return response.end(JSON.stringify(responseRecord))
             })
     }
@@ -231,6 +239,7 @@ async function jobControl(request, response, identifier) {
                 jobhost: record.jobhost,
                 jobtask: record.jobtask,
                 jobcontrol: control || record.jobcontrol,
+                jobmsg: record.jobmsg,
                 initialTime: record.initialTime,
                 lastUpdateTime: record.lastUpdateTime
             }
@@ -270,6 +279,7 @@ async function jobFinal(request, response, identifier, action) {
                     jobhost: record.jobhost,
                     jobtask: record.jobtask,
                     jobcontrol: control,
+                    jobmsg: record.jobmsg,
                     initialTime: record.initialTime,
                     lastUpdateTime: record.lastUpdateTime
                 }
