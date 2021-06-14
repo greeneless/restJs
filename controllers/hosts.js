@@ -52,9 +52,10 @@ async function addHost(identifier, jobid) {
         .then(async r => { 
             if (!r) {
                 const newRecord = await Data.addHost(record)
-                console.log('POST /api/hosts [INTERNAL - SUCCESS]')
+                console.log('POST /api/hosts [INTERNAL - CREATE]')
             } else {
-                console.log('POST /api/hosts [INTERNAL - REJECT, ID ALREADY EXISTS]')
+                const updatedRecord = await Data.updateHost(r, identifier)
+                console.log('PUT /api/hosts [INTERNAL - TIMESTAMP UPDATE]')
             }
         })
     } catch (error) {

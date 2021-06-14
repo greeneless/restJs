@@ -32,6 +32,7 @@ const server = http.createServer((request, response) => {
             // assign oldest available new status job to requesting engine
             assignWork(request, response, jobData[oldestDateIndex], identifier)
         } else if (request.url.match(/\/api\/hosts\/([a-zA-Z0-9=]+$)/)) {
+            // identifier is sdehostname
             if (request.method === 'PUT') { 
                 updateHost(request, response, identifier)
             } else if (request.method === 'DELETE') {
