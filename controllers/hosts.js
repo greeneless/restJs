@@ -42,19 +42,25 @@ async function getHost(request, response, identifier) {
     }
 }
 
-// @desc    Update
-// @route   POST /api/hosts/ [INTERNAL, NO REQUEST/RESPONSE]
+// @desc    Create or update
+// @route   POST or PUT /api/hosts/ [INTERNAL, NO REQ/RES]
 async function addHost(identifier, jobid) {
     try {
-        // make sure we're not posting the same identifier
+        // jobid can be empty string if no jobs avail
         const record = { identifier, jobid }
+
+        // make sure we're not posting the same identifier
         const checkExist = await Data.findHostById(identifier)
         .then(async r => { 
             if (!r) {
                 const newRecord = await Data.addHost(record)
                 console.log('POST /api/hosts [INTERNAL - CREATE]')
             } else {
-                const updatedRecord = await Data.updateHost(r, identifier)
+                let updatedRecord = {
+                    ...r,
+                }
+                updatedRecord.jobid = jobid
+                updatedRecord = await Data.updateHost(updatedRecord, identifier)
                 console.log('PUT /api/hosts [INTERNAL - TIMESTAMP UPDATE]')
             }
         })
