@@ -1,7 +1,8 @@
 const { getData, getItem, addItem, updateItem, deleteItem, assignWork, jobControl, jobFinal, rejectRequest } = require('./controllers/jobs')
-const { getHosts, getHost, addHost, updateHost, deleteHost } = require('./controllers/hosts')
+const { getHosts, getHost, updateHost, deleteHost } = require('./controllers/hosts')
 const { loadFromFile, arrayFromRootJsonProperty } = require('./utils.js')
 const http = require('http')
+const { resourceUsage } = require('process')
 const port = process.env.NODEPORT || 5000
 const server = http.createServer((request, response) => {
     console.log(request.method, request.url)
@@ -30,8 +31,18 @@ const server = http.createServer((request, response) => {
 
             // assign oldest available new status job to requesting engine
             assignWork(request, response, jobData[oldestDateIndex], identifier)
+        } else if (request.url.match(/\/api\/hosts\/([a-zA-Z0-9=]+$)/)) {
+            if (request.method === 'PUT') { 
+                updateHost(request, response, identifier)
+            } else if (request.method === 'DELETE') {
+                deleteHost(request, response, identifier)
+            } else if (request.method === 'GET') {
+                getHost(request, response, identifier)
+            } else {
+                rejectRequest(response,  'route not found. route received as ' + request.method + request.url, 404)
+            }
         } else if (request.url.includes('/api/jobs')) {
-            // job processing with identifier action
+            // identifier is base64(custid + jobtype)
             if (request.method === 'GET' && request.url.match(/\/api\/jobs\/control\/([a-zA-Z0-9=]+$)/)) {
                 console.log('Found endpoint ' + request.url)
                 jobControl(request, response, identifier)
@@ -64,6 +75,8 @@ const server = http.createServer((request, response) => {
                 // default to 'GET'
                 getData(request, response)
             }
+        } else if (request.url.includes('/api/hosts')) {
+            getHosts(request, response)
         } else {
             // not found did not match any above
             rejectRequest(response,  'route not found. route received as ' + request.method + request.url, 404)

@@ -1,11 +1,11 @@
-const hostData = require('../models/hosts')
+const Data = require('../models/hosts')
 const { getPostData, getFuncName } = require('../utils')
 
 // @desc    Retrieve bulk
 // @route   GET /api/hosts/
 async function getHosts(request, response) {
     try {
-        const records = await hostData.findAllHosts()
+        const records = await Data.findAllHosts()
         response.writeHead(200, { 'Content-Type': 'application/json' })
         response.end(JSON.stringify(records))
     } catch (error) {
@@ -25,7 +25,7 @@ async function getHost(request, response, identifier) {
     try {
         response.writeHead(200, { 'Content-Type': 'application/json' })
 
-        const record = await hostData.findHostById(identifier)
+        const record = await Data.findHostById(identifier)
         if (!record) {
             response.end(JSON.stringify({'message': 'record not found'}))
         } else {
@@ -48,10 +48,10 @@ async function addHost(identifier, jobid) {
     try {
         // make sure we're not posting the same identifier
         const record = { identifier, jobid }
-        const checkExist = await hostData.findHostById(identifier)
+        const checkExist = await Data.findHostById(identifier)
         .then(async r => { 
             if (!r) {
-                const newRecord = await hostData.addHost(record)
+                const newRecord = await Data.addHost(record)
                 console.log('POST /api/hosts [INTERNAL - SUCCESS]')
             } else {
                 console.log('POST /api/hosts [INTERNAL - REJECT, ID ALREADY EXISTS]')
@@ -68,18 +68,18 @@ async function updateHost(request, response, identifier) {
     try {
         response.writeHead(200, { 'Content-Type': 'application/json' })
 
-        const record = await hostData.findHostById(identifier)
+        const record = await Data.findHostById(identifier)
         if (!record) {
             response.end(JSON.stringify({'message': 'record not found'}))
         } else {
 
         const body = await getPostData(request)
-        let { lastUpdateTime } = JSON.parse(body)
+        let { jobid } = JSON.parse(body)
         const recordData = {
-                jobid: record.custid,
-                lastUpdateTime: lastUpdateTime || record.lastUpdateTime
+                jobid: jobid || record.jobid,
+                lastUpdateTime: record.lastUpdateTime
         }
-        const updatedRecord = await hostData.updateHost(recordData, record.id)
+        const updatedRecord = await Data.updateHost(recordData, record.id)
         return response.end(JSON.stringify(updatedRecord))
     }
     } catch (error) {
@@ -99,7 +99,7 @@ async function deleteHost(request, response, identifier) {
     try {
         response.writeHead(200, { 'Content-Type': 'application/json' })
 
-        const record = await hostData.findHostById(identifier)
+        const record = await Data.findHostById(identifier)
         if (!record) {
             response.end(JSON.stringify({'message': 'record not found'}))
         } else {
