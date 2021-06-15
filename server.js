@@ -7,7 +7,7 @@ const port = process.env.NODEPORT || 5000
 const server = http.createServer((request, response) => {
     console.log(request.method, request.url)
     let identifier = undefined
-    if (request.url.match(/\/([a-z0-9]+)\/([a-z0-9]+)\/([a-zA-Z0-9=]+$)/)) {
+    if (request.url.match(/\/([a-zA-Z0-9]+)\/([a-zA-Z0-9]+)\/([a-zA-Z0-9=]+$)/)) {
         identifier = request.url.split('/').pop()
     }
     if (identifier) {

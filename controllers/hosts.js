@@ -6,8 +6,9 @@ const { getPostData, getFuncName } = require('../utils')
 async function getHosts(request, response) {
     try {
         const records = await Data.findAllHosts()
+        const output = { hosts: records, count: records.length }
         response.writeHead(200, { 'Content-Type': 'application/json' })
-        response.end(JSON.stringify(records))
+        response.end(JSON.stringify(output, null, 2))
     } catch (error) {
         console.log(error)
         response.writeHead(500, {'Content-Type': 'application/json'})
@@ -15,7 +16,7 @@ async function getHosts(request, response) {
             {
                 'message': 'request not processed trycatch caught an error in ' + getFuncName(),
                 'error': error
-            }))
+            }, null, 2))
     }
 }
 
@@ -27,9 +28,9 @@ async function getHost(request, response, identifier) {
 
         const record = await Data.findHostById(identifier)
         if (!record) {
-            response.end(JSON.stringify({'message': 'record not found'}))
+            response.end(JSON.stringify({'message': 'record not found'}, null, 2))
         } else {
-            response.end(JSON.stringify(record))
+            response.end(JSON.stringify(record, null, 2))
         }
     } catch (error) {
         console.log(error)
@@ -38,7 +39,7 @@ async function getHost(request, response, identifier) {
             {
                 'message': 'request not processed trycatch caught an error in ' + getFuncName(),
                 'error': error
-            }))
+            }, null, 2))
     }
 }
 
@@ -77,7 +78,7 @@ async function updateHost(request, response, identifier) {
 
         const record = await Data.findHostById(identifier)
         if (!record) {
-            response.end(JSON.stringify({'message': 'record not found'}))
+            response.end(JSON.stringify({'message': 'record not found'}, null, 2))
         } else {
 
         const body = await getPostData(request)
@@ -87,7 +88,7 @@ async function updateHost(request, response, identifier) {
                 lastUpdateTime: record.lastUpdateTime
         }
         const updatedRecord = await Data.updateHost(recordData, record.id)
-        return response.end(JSON.stringify(updatedRecord))
+        return response.end(JSON.stringify(updatedRecord, null, 2))
     }
     } catch (error) {
         console.log(error)
@@ -96,7 +97,7 @@ async function updateHost(request, response, identifier) {
             {
                 'message': 'request not processed trycatch caught an error in ' + getFuncName(),
                 'error': error
-            }))
+            }, null, 2))
     }
 }
 
@@ -108,10 +109,10 @@ async function deleteHost(request, response, identifier) {
 
         const record = await Data.findHostById(identifier)
         if (!record) {
-            response.end(JSON.stringify({'message': 'record not found'}))
+            response.end(JSON.stringify({'message': 'record not found'}, null, 2))
         } else {
             await Data.delHost(identifier)
-            response.end(JSON.stringify({'message': `record removed. id: ${identifier}`}))
+            response.end(JSON.stringify({'message': `record removed. id: ${identifier}`}, null, 2))
         }
     } catch (error) {
         console.log(error)
@@ -120,7 +121,7 @@ async function deleteHost(request, response, identifier) {
             {
                 'message': 'request not processed trycatch caught an error in ' + getFuncName(),
                 'error': error
-            }))
+            }, null, 2))
     }
 }
 

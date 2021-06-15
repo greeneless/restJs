@@ -44,10 +44,17 @@ function update(newData, identifer) {
 
 function del(identifer) {
     return new Promise((resolve, reject) => {
-        let filteredData = content.filter((record) => record.id !== identifer)
-        // rewrite to file all data except record matching identifier
-        writeToFile('./data/jobs.json', filteredData)
-        resolve()
+        try {
+            // find array index for id and modify content array
+            let index = content.findIndex((record) => record.id === identifer)
+            content.splice(index, 1)
+
+            // writeback to source or db insert into
+            writeToFile('./data/jobs.json', content)
+            resolve()
+        } catch (error) {
+            reject(error)
+        }
     })
 }
 
