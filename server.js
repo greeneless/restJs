@@ -45,10 +45,8 @@ const server = http.createServer((request, response) => {
         } else if (request.url.includes('/api/jobs')) {
             // identifier is base64(custid + jobtype)
             if (request.method === 'GET' && request.url.match(/\/api\/jobs\/control\/([a-zA-Z0-9=]+$)/)) {
-                console.log('Found endpoint ' + request.url)
                 jobControl(request, response, identifier)
             } else if (request.method === 'POST' && request.url.includes('/api/jobs/final')) {
-                console.log('Found endpoint ' + request.url)
                 const action = request.url.split('/')[4]
                 if (action === 'pass' || action === 'fail') {
                     jobFinal(request, response, identifier, action)

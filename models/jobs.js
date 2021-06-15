@@ -46,8 +46,8 @@ function del(identifer) {
     return new Promise((resolve, reject) => {
         try {
             // find array index for id and modify content array
-            let index = content.findIndex((record) => record.id === identifer)
-            content.splice(index, 1)
+            const recordIndex = content.findIndex((record) => record.id === identifer)
+            content.splice(recordIndex, 1)
 
             // writeback to source or db insert into
             writeToFile('./data/jobs.json', content)

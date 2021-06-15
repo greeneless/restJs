@@ -19,6 +19,7 @@ function addHost(record) {
     const newRecord = {
         id: record.identifier,
         jobid: record.jobid,
+        hostcontrol: 1,
         lastUpdateTime: dateTime
     }
     content.push(newRecord)
@@ -41,10 +42,17 @@ function updateHost(newData, identifer) {
 
 function delHost(identifer) {
     return new Promise((resolve, reject) => {
-        let filteredData = content.filter((record) => record.id !== identifer)
-        // rewrite to file all data except record matching identifier
-        writeToFile('./data/hosts.json', filteredData)
-        resolve()
+        try {
+            // find array index for id and modify content array
+            const recordIndex = content.findIndex((record) => record.id === identifer)
+            content.splice(recordIndex, 1)
+
+            // writeback to source or db insert into
+            writeToFile('./data/hosts.json', content)
+            resolve()
+        } catch (error) {
+            reject(error)
+        }
     })
 }
 

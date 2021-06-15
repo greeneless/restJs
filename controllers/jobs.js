@@ -1,7 +1,7 @@
 const Data = require('../models/jobs')
 const { dbSelect } = require('../dbo')
 const { getPostData, getFuncName, toBase64, dbAuth } = require('../utils')
-const { addHost, checkHost } = require('../controllers/hosts') 
+const { addHost, checkHostAvail, modifyHost } = require('../controllers/hosts') 
 
 function rejectRequest(response, message, statuscode) {
         response.writeHead(statuscode, { 'Content-Type': 'application/json' })
@@ -55,10 +55,11 @@ async function getItem(request, response, identifier) {
 async function addItem(request, response) {
     try {
         const body = await getPostData(request)
+
         // guard no body content return
         if (!body) {
             response.writeHead(500, {'Content-Type': 'application/json'})
-            return response.end(JSON.stringify({'message': 'received POST ' + request.url + ' with no body content.'}, null, 2))
+            return response.end(JSON.stringify({'message': 'received ' + request.method + ' ' + request.url + ' with no body content.'}, null, 2))
         }
 
         let { custid, jobtype, jobstatus, jobhost, jobtask, jobcontrol, jobmsg } = JSON.parse(body)
@@ -125,22 +126,30 @@ async function updateItem(request, response, identifier) {
         if (!record) {
             response.end(JSON.stringify({'message': 'record not found'}, null, 2))
         } else {
+            // get body data and assign related vars
+            const body = await getPostData(request)
 
-        const body = await getPostData(request)
-        let { jobtype, jobstatus, jobhost, jobtask, jobcontrol, jobmsg } = JSON.parse(body)
-        const recordData = {
-            custid: record.custid,
-            jobtype: jobtype || record.jobtype,
-            jobstatus: jobstatus || record.jobstatus,
-            jobhost: jobhost || record.jobhost,
-            jobtask: jobtask || record.jobtask,
-            jobcontrol: jobcontrol || record.jobcontrol,
-            jobmsg: jobmsg || record.jobmsg,
-            initialTime: record.initialTime
+            // guard no body content return
+            if (!body) {
+                response.writeHead(500, {'Content-Type': 'application/json'})
+                return response.end(JSON.stringify({'message': 'received ' + request.method + ' ' + request.url + ' with no body content.'}, null, 2))
+            }
+    
+            let { jobtype, jobstatus, jobhost, jobtask, jobcontrol, jobmsg } = JSON.parse(body)
+
+            const recordData = {
+                custid: record.custid,
+                jobtype: jobtype || record.jobtype,
+                jobstatus: jobstatus || record.jobstatus,
+                jobhost: jobhost || record.jobhost,
+                jobtask: jobtask || record.jobtask,
+                jobcontrol: jobcontrol || record.jobcontrol,
+                jobmsg: jobmsg || record.jobmsg,
+                initialTime: record.initialTime
+            }
+            const updatedRecord = await Data.update(recordData, record.id)
+            return response.end(JSON.stringify(updatedRecord, null, 2))
         }
-        const updatedRecord = await Data.update(recordData, record.id)
-        return response.end(JSON.stringify(updatedRecord, null, 2))
-    }
     } catch (error) {
         console.log(error)
         response.writeHead(500, {'Content-Type': 'application/json'})
@@ -154,16 +163,22 @@ async function updateItem(request, response, identifier) {
 
 // @desc    Delete record
 // @route   DELETE /api/jobs/:id
-async function deleteItem(request, response, identifier) {
+async function deleteItem(request, response, identifier, force=false) {
     try {
         response.writeHead(200, { 'Content-Type': 'application/json' })
-
         const record = await Data.findById(identifier)
         if (!record) {
             response.end(JSON.stringify({'message': 'record not found'}, null, 2))
         } else {
+            // forbidden request if job is assigned to a host
+            if (record.jobhost && !force) {
+                response.writeHead(403, { 'Content-Type': 'application/json' })
+                return response.end(JSON.stringify({'message': `forbidden, job already assigned to ${record.jobhost}. id: ${identifier}`}, null, 2))
+            }
+
+            // delete the job from the jobs record set
             await Data.del(identifier)
-            response.end(JSON.stringify({'message': `record removed. id: ${identifier}`}, null, 2))
+            return response.end(JSON.stringify({'message': `record removed. id: ${identifier}`}, null, 2))
         }
     } catch (error) {
         console.log(error)
@@ -186,9 +201,9 @@ async function assignWork(request, response, record, hostname, newcustid='') {
             return response.end(JSON.stringify({'message': 'no work offered'}, null, 2))
         } else {
             // guard host is busy
-            const hostCheck = await checkHost(hostname)
+            const hostCheck = await checkHostAvail(hostname)
             if (!hostCheck) {
-                return response.end(JSON.stringify({'message': 'requested host is busy'}, null, 2))
+                return response.end(JSON.stringify({'message': 'requested host is busy or offline'}, null, 2))
             }
 
             // main logic
@@ -215,7 +230,7 @@ async function assignWork(request, response, record, hostname, newcustid='') {
                 }
                 return response.end(JSON.stringify(responseRecord, null, 2))
             })
-    }
+        }
     } catch (error) {
         console.log(error)
         response.writeHead(500, {'Content-Type': 'application/json'})
@@ -264,46 +279,60 @@ async function jobControl(request, response, identifier) {
     }
 }
 
+// @desc    Update record for finished job if fail. Delete is pass. Update hosts content.
+// @route   POST /api/jobs/final/:id
 async function jobFinal(request, response, identifier, action) {
-    if (action === 'pass') {
-        // we will process this as a deletion
-        return deleteItem(request, response, identifier)
-    }
-    if (action === 'fail') {
-        try {
-            response.writeHead(200, { 'Content-Type': 'application/json' })
-    
-            const record = await Data.findById(identifier)
-            if (!record) {
-                response.end(JSON.stringify({'message': 'record not found'}, null, 2))
-            } else {
-                const control = 'wait'
-                const status = 'aborted'
-                const recordData = {
-                    custid: record.custid,
-                    jobtype: record.jobtype,
-                    jobstatus: status,
-                    jobhost: record.jobhost,
-                    jobtask: record.jobtask,
-                    jobcontrol: control,
-                    jobmsg: record.jobmsg,
-                    initialTime: record.initialTime,
-                    lastUpdateTime: record.lastUpdateTime
-                }
-                const updatedRecord = await Data.update(recordData, record.id)
-                return response.end(JSON.stringify(updatedRecord, null, 2))
+    try {
+        const record = await Data.findById(identifier)
+        if (!record) {
+            response.writeHead(404, { 'Content-Type': 'application/json' })
+            return response.end(JSON.stringify({'message': 'record not found'}, null, 2))
         }
-        } catch (error) {
-            console.log(error)
+
+        // remove assigned job from hosts record set
+        const hostCheck = await checkHostAvail(record.jobhost)
+        if (!hostCheck) { modifyHost(record.jobhost.toString(), 'jobid', '') }
+
+        response.writeHead(200, { 'Content-Type': 'application/json' })
+        if (action === 'pass') {  
+            // deletion handles request response
+            deleteItem(request, response, identifier, force=true)
+        } else if (action === 'fail') {
+            const recordData = {
+                custid: record.custid,
+                jobtype: record.jobtype,
+                jobstatus: 'aborted',
+                jobhost: '',
+                jobtask: record.jobtask,
+                jobcontrol: 'wait',
+                jobmsg: record.jobmsg,
+                initialTime: record.initialTime,
+                lastUpdateTime: record.lastUpdateTime
+            }
+            // this is essentially an internal put request
+            const updatedRecord = await Data.update(recordData, record.id)
+            return response.end(JSON.stringify(updatedRecord, null, 2))
+        } else {
+            // invalid action should have already been handled by server.js
             response.writeHead(500, {'Content-Type': 'application/json'})
             return response.end(JSON.stringify(
                 {
-                    'message': 'request not processed trycatch caught an error in ' + getFuncName(),
-                    'error': error
+                    'message': 'request not processed trycatch caught an error in ' + getFuncName(), 
+                    'error': 'jobs/final must be followed by pass or fail'
                 }, null, 2))
-        }    
-    }
+        }
+    } catch (error) {
+        console.log(error)
+        response.writeHead(500, {'Content-Type': 'application/json'})
+        return response.end(JSON.stringify(
+            {
+                'message': 'request not processed trycatch caught an error in ' + getFuncName(),
+                'error': error
+            }, null, 2))
+    }    
 }
+
+
 module.exports = {
     getData,
     getItem,

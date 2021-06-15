@@ -55,14 +55,14 @@ async function addHost(identifier, jobid) {
         .then(async r => { 
             if (!r) {
                 const newRecord = await Data.addHost(record)
-                console.log('POST /api/hosts [INTERNAL - CREATE]')
+                console.log('POST /api/hosts [INTERNAL - CREATED]')
             } else {
                 let updatedRecord = {
                     ...r,
                 }
                 updatedRecord.jobid = jobid
                 updatedRecord = await Data.updateHost(updatedRecord, identifier)
-                console.log('PUT /api/hosts [INTERNAL - TIMESTAMP UPDATE]')
+                console.log('PUT /api/hosts [INTERNAL - TIMESTAMP UPDATED]')
             }
         })
     } catch (error) {
@@ -71,7 +71,7 @@ async function addHost(identifier, jobid) {
 }
 
 // @desc    Update
-// @route   PUT /api/jobs/:id
+// @route   PUT /api/hosts/:id
 async function updateHost(request, response, identifier) {
     try {
         response.writeHead(200, { 'Content-Type': 'application/json' })
@@ -82,11 +82,12 @@ async function updateHost(request, response, identifier) {
         } else {
 
         const body = await getPostData(request)
-        let { jobid } = JSON.parse(body)
-        const recordData = {
-                jobid: jobid || record.jobid,
-                lastUpdateTime: record.lastUpdateTime
+        let { jobid, hostcontrol } = JSON.parse(body)
+        if (!hostcontrol === 0 || !hostcontrol === 1) {
+            console.log('Host control must be int, 0 || 1')
+            hostcontrol = record.hostcontrol
         }
+        const recordData = { jobid: jobid || record.jobid, hostcontrol: hostcontrol }
         const updatedRecord = await Data.updateHost(recordData, record.id)
         return response.end(JSON.stringify(updatedRecord, null, 2))
     }
@@ -102,7 +103,7 @@ async function updateHost(request, response, identifier) {
 }
 
 // @desc    Delete record
-// @route   DELETE /api/jobs/:id
+// @route   DELETE /api/hosts/:id
 async function deleteHost(request, response, identifier) {
     try {
         response.writeHead(200, { 'Content-Type': 'application/json' })
@@ -127,15 +128,15 @@ async function deleteHost(request, response, identifier) {
 
 // @desc    Inquire
 // @route   GET /api/hosts/:id
-async function checkHost(identifier) {
+async function checkHostAvail(identifier) {
     try {
-        // make sure we're not posting the same identifier
         const checkExist = await Data.findHostById(identifier)
         .then(async r => { 
             if (!r) {
                 return true
             } else {
-                if (r.jobid) {
+                if (r.jobid || r.hostcontrol === 0) {
+                    // host is not available
                     return false
                 } else {
                     return true
@@ -148,11 +149,31 @@ async function checkHost(identifier) {
     }
 }
 
+
+// @desc    Update hosts content without server reply
+// @route   PUT /api/hosts/:id [INTERNAL, NO REQ/RES]]
+async function modifyHost(identifier, field, value) {
+    try {
+        const record = await Data.findHostById(identifier)
+        if (!record) {
+            console.log('GET /api/hosts/' + identifier + ' [INTERNAL - RECORD NOT FOUND]')
+        } else {
+            let recordData = {...record}
+            recordData[field] = value
+            const updatedRecord = await Data.updateHost(recordData, record.id)
+            console.log('PUT /api/hosts/' + identifier + ' [INTERNAL - UPDATED JOBID]')
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
+
 module.exports = {
     getHosts,
     getHost,
     addHost,
     updateHost,
+    modifyHost,
     deleteHost,
-    checkHost
+    checkHostAvail
 }
