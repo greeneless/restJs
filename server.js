@@ -48,7 +48,7 @@ const server = http.createServer((request, response) => {
                 jobControl(request, response, identifier)
             } else if (request.method === 'POST' && request.url.includes('/api/jobs/final')) {
                 const action = request.url.split('/')[4]
-                if (action === 'pass' || action === 'fail') {
+                if (action === 'pass' || action === 'fail' || action === 'reject') {
                     jobFinal(request, response, identifier, action)
                 } else {
                     rejectRequest(response,  'route not found; path pass/fail required for jobs/final.', 404)

@@ -206,7 +206,7 @@ async function assignWork(request, response, record, hostname, newcustid='') {
                 return response.end(JSON.stringify({'message': 'requested host is busy or offline'}, null, 2))
             }
 
-            // main logic
+            // ********** main logic **********//
             await addHost(hostname, record.id)
             const recordData = {
                 custid: newcustid || record.custid,
@@ -279,7 +279,7 @@ async function jobControl(request, response, identifier) {
     }
 }
 
-// @desc    Update record for finished job if fail. Delete is pass. Update hosts content.
+// @desc    Update record for finished job if fail/reject. Delete if pass. Update hosts content.
 // @route   POST /api/jobs/final/:id
 async function jobFinal(request, response, identifier, action) {
     try {
@@ -297,7 +297,7 @@ async function jobFinal(request, response, identifier, action) {
         if (action === 'pass') {  
             // deletion handles request response
             deleteItem(request, response, identifier, force=true)
-        } else if (action === 'fail') {
+        } else if (action === 'fail' || action === 'reject') {
             const recordData = {
                 custid: record.custid,
                 jobtype: record.jobtype,
